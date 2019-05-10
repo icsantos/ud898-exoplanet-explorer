@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
 Instructions:
 (1) Rewrite get with the Fetch API: https://davidwalsh.name/fetch
@@ -17,9 +18,10 @@ Instructions:
   /**
    * Helper function to show the search query.
    * @param {String} query - The search query.
+   * @return {undefined}
    */
   function addSearchHeader(query) {
-    home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
+    home.innerHTML = `<h2 class="page-title">query: ${query}</h2>`;
   }
 
   /**
@@ -28,12 +30,7 @@ Instructions:
    * @return {Promise}    - A Promise that resolves when the XHR succeeds and fails otherwise.
    */
   function get(url) {
-    /*
-    Use the Fetch API to GET a URL.
-    Return the fetch.
-
-    Your code goes here!
-     */
+    return fetch(url);
   }
 
   /**
@@ -42,21 +39,27 @@ Instructions:
    * @return {Promise}    - A promise that passes the parsed JSON response.
    */
   function getJSON(url) {
-    /*
-    Return a Promise that gets a URL and parses the JSON response. Use your get method!
-
-    Your code goes here!
-     */
+    return get(url).then(function(response) {
+      return response.json();
+    });
   }
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Uncomment the next line when you're ready to test!
-    Don't forget to chain with a .then and a .catch!
 
-    Your code goes here too!
-     */
-    // getJSON('../data/earth-like-results.json')
+    getJSON('../data/earth-like-results.json')
+      .then(function(response) {
+        addSearchHeader(response.query);
+        console.log(response);
+
+        return response.results[0];
+      })
+      .then(function(url) {
+        console.log(url);
+      })
+      .catch(function(error) {
+        addSearchHeader('unknown');
+        console.log(error);
+      });
   });
 }(document));
