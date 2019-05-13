@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
 Instructions:
 (1) Get the planet data and add the search header.
@@ -9,28 +10,32 @@ Instructions:
 
 // Inline configuration for jshint below. Prevents `gulp jshint` from failing with quiz starter code.
 /* jshint unused: false */
+/* jshint esversion: 6 */
 
 (function(document) {
-  'use strict';
-
-  var home = null;
+  let home = null;
 
   /**
    * Helper function to show the search query.
    * @param {String} query - The search query.
+   * @return {undefined}
    */
   function addSearchHeader(query) {
-    home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
+    home.innerHTML = `<h2 class="page-title">query: ${query}</h2>`;
   }
 
   /**
    * Helper function to create a planet thumbnail.
    * @param  {Object} data - The raw data describing the planet.
+   * @return {undefined}
    */
   function createPlanetThumb(data) {
-    var pT = document.createElement('planet-thumb');
-    for (var d in data) {
-      pT[d] = data[d];
+    const pT = document.createElement('planet-thumb');
+
+    for (const dx in data) {
+      if ({}.hasOwnProperty.call(data, dx)) {
+        pT[dx] = data[dx];
+      }
     }
     home.appendChild(pT);
   }
@@ -42,7 +47,7 @@ Instructions:
    */
   function get(url) {
     return fetch(url, {
-      method: 'get'
+      'method': 'get'
     });
   }
 
@@ -59,11 +64,21 @@ Instructions:
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Uncomment the next line and start here when you're ready to add the first thumbnail!
+    getJSON('../data/earth-like-results.json')
+      .then(function(response) {
+        addSearchHeader(response.query);
 
-    Your code goes here!
-     */
-    // getJSON('../data/earth-like-results.json')
-  });
-})(document);
+        return getJSON(response.results[0]);
+      })
+      .catch(function() {
+        throw Error('Error in Search Request');
+      })
+      .then(function(data) {
+        createPlanetThumb(data);
+      })
+      .catch(function(error) {
+        addSearchHeader('unknown');
+        console.log(error);
+      });
+    });
+}(document));
