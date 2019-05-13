@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
 Instructions:
 (1) Use .map to fetch all the planets in parallel.
@@ -9,26 +10,29 @@ Instructions:
 /* jshint unused: false */
 
 (function(document) {
-  'use strict';
-
-  var home = null;
+  let home = null;
 
   /**
    * Helper function to show the search query.
    * @param {String} query - The search query.
+   * @return {undefined}
    */
   function addSearchHeader(query) {
-    home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
+    home.innerHTML = `<h2 class="page-title">query: ${query}</h2>`;
   }
 
   /**
    * Helper function to create a planet thumbnail.
    * @param  {Object} data - The raw data describing the planet.
+   * @return {undefined}
    */
   function createPlanetThumb(data) {
-    var pT = document.createElement('planet-thumb');
-    for (var d in data) {
-      pT[d] = data[d];
+    const pT = document.createElement('planet-thumb');
+
+    for (const dx in data) {
+      if ({}.hasOwnProperty.call(data, dx)) {
+        pT[dx] = data[dx];
+      }
     }
     home.appendChild(pT);
   }
@@ -55,10 +59,13 @@ Instructions:
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Your code goes here! Uncomment the next line when you're ready to start!
-     */
 
-    // getJSON('../data/earth-like-results.json')
+    getJSON('../data/earth-like-results.json')
+    .then(function(response) {
+      response.results.map((url) => getJSON(url).then(createPlanetThumb));
+    })
+    .catch(function(err) {
+      console.log(err);
+    });
   });
-})(document);
+}(document));
