@@ -67,10 +67,10 @@ Instructions:
     getJSON('../data/earth-like-results.json')
     .then(function(response) {
       console.log(response.results);
-      const seq = Promise.resolve();
+      let seq = Promise.resolve();
 
       response.results.forEach(function(url) {
-        seq.then(function() {
+        seq = seq.then(function() {
           return getJSON(url);
         })
         .then(createPlanetThumb);
