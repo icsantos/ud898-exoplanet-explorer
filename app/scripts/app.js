@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
 Instructions:
 (1) Use Promise.all to refactor the .map code by passing Promise.all an array of Promises.
@@ -10,26 +11,29 @@ Hint: you'll probably still need to use .map.
 /* jshint unused: false */
 
 (function(document) {
-  'use strict';
-
-  var home = null;
+  let home = null;
 
   /**
    * Helper function to show the search query.
    * @param {String} query - The search query.
+   * @return {undefined}
    */
   function addSearchHeader(query) {
-    home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
+    home.innerHTML = `<h2 class="page-title">query: ${query}</h2>`;
   }
 
   /**
    * Helper function to create a planet thumbnail.
    * @param  {Object} data - The raw data describing the planet.
+   * @return {undefined}
    */
   function createPlanetThumb(data) {
-    var pT = document.createElement('planet-thumb');
-    for (var d in data) {
-      pT[d] = data[d];
+    const pT = document.createElement('planet-thumb');
+
+    for (const dx in data) {
+      if ({}.hasOwnProperty.call(data, dx)) {
+        pT[dx] = data[dx];
+      }
     }
     home.appendChild(pT);
   }
@@ -56,17 +60,20 @@ Hint: you'll probably still need to use .map.
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Refactor this code with Promise.all!
-     */
-    getJSON('../data/earth-like-results.json')
-    .then(function(response) {
 
+    getJSON('../data/earth-like-results.json')
+    .then((response) => {
       addSearchHeader(response.query);
 
-      response.results.map(function(url) {
-        getJSON(url).then(createPlanetThumb);
+      return Promise.all(response.results.map(getJSON));
+    })
+    .then((urls) => {
+      urls.forEach((url) => {
+        createPlanetThumb(url);
       });
+    })
+    .catch((err) => {
+      console.log(err);
     });
   });
-})(document);
+}(document));
