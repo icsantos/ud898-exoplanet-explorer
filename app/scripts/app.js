@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
 Challenge:
 
@@ -7,28 +8,32 @@ proper order even if all the requests haven't finished.
 
 // Inline configuration for jshint below. Prevents `gulp jshint` from failing with quiz starter code.
 /* jshint unused: false */
+/* jshint esversion: 6 */
 
 (function(document) {
-  'use strict';
-
-  var home = null;
+  let home = null;
 
   /**
    * Helper function to show the search query.
    * @param {String} query - The search query.
+   * @return {undefined}
    */
   function addSearchHeader(query) {
-    home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
+    home.innerHTML = `<h2 class="page-title">query: ${query}</h2>`;
   }
 
   /**
    * Helper function to create a planet thumbnail.
    * @param  {Object} data - The raw data describing the planet.
+   * @return {undefined}
    */
   function createPlanetThumb(data) {
-    var pT = document.createElement('planet-thumb');
-    for (var d in data) {
-      pT[d] = data[d];
+    const pT = document.createElement('planet-thumb');
+
+    for (const dx in data) {
+      if ({}.hasOwnProperty.call(data, dx)) {
+        pT[dx] = data[dx];
+      }
     }
     home.appendChild(pT);
   }
@@ -48,16 +53,27 @@ proper order even if all the requests haven't finished.
    * @return {Promise}    - A promise that passes the parsed JSON response.
    */
   function getJSON(url) {
-    return get(url).then(function(response) {
-      return response.json();
-    });
+    return get(url).then((response) => response.json());
   }
 
-  window.addEventListener('WebComponentsReady', function() {
+  window.addEventListener('WebComponentsReady', function () {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Your code goes here!
-     */
-    // getJSON('../data/earth-like-results.json')
+
+    getJSON('../data/earth-like-results.json')
+      .then((response) => {
+        addSearchHeader(response.query);
+
+        return response.results.map(getJSON)
+          .reduce((sequence, urlPromise) => {
+            return sequence
+              .then(() => urlPromise)
+              .then((url) => {
+                createPlanetThumb(url);
+              });
+          }, Promise.resolve());
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
-})(document);
+}(document));
